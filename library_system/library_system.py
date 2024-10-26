@@ -44,6 +44,23 @@ def add_transaction(member_id, book_id, borrow_date, status='Đang mượn'):
     connection.close()
     print(f"Đã thêm giao dịch mượn sách cho thành viên ID {member_id} với sách ID {book_id}.")
 
+# Hàm cập nhật trạng thái trả sách
+def return_book(transaction_id, return_date):
+    connection = connect_to_database()
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE transactions
+        SET status = %s, return_date = %s
+        WHERE id = %s AND status = 'Đang mượn'
+    """, ('Đã trả', return_date, transaction_id))
+    connection.commit()
+    if cursor.rowcount > 0:
+        print(f"Giao dịch ID {transaction_id} đã được cập nhật là 'Đã trả'.")
+    else:
+        print(f"Không tìm thấy giao dịch ID {transaction_id} hoặc sách đã được trả.")
+    cursor.close()
+    connection.close()
+
 # Hàm tạo báo cáo và hiển thị lên màn hình
 def generate_report():
     connection = connect_to_database()
@@ -93,6 +110,7 @@ def menu():
         print("3. Thêm Giao Dịch Mượn Sách")
         print("4. Xem Báo Cáo Mượn Sách")
         print("5. Xem Giao Dịch Hôm Nay")
+        print("6. Trả Sách")
         print("0. Thoát")
 
         choice = input("Chọn một chức năng: ")
@@ -122,6 +140,11 @@ def menu():
         elif choice == '5':
             print("\nGiao dịch mượn sách hôm nay:")
             show_today_transactions()
+
+        elif choice == '6':
+            transaction_id = int(input("Nhập ID giao dịch: "))
+            return_date = input("Nhập ngày trả (YYYY-MM-DD): ")
+            return_book(transaction_id, return_date)
 
         elif choice == '0':
             print("Thoát chương trình.")
